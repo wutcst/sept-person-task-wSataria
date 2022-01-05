@@ -122,12 +122,13 @@ public class StrategyGo extends IStrategy{
 ```
 
 4. 替换Game中的if-else部分
+```
 switch(command.getCommandWord()) {
         	case "help": new Context(new StrategyHelp(command, this)).getResult(); break;
         	case "go": new Context(new StrategyGo(command, this)).getResult(); break;
         	case "quit": wantToQuit = (boolean)new Context(new StrategyQuit(command, this)).getResult(); break;
         }
-
+```
 
 ### 扩展功能(具体实现见代码文件)
 1. 扩展游戏，使得一个房间里可以存放任意数量的物件，每个物件可以有一个描述和一个重量值，玩家进入一个房间后，可以通过“look”命令查看当前房间的信息以及房间内的所有物品信息；
@@ -140,7 +141,7 @@ switch(command.getCommandWord()) {
    * 在CommandWords中加入有效命令back
    * 创建StrategyBack策略类并写出其中的具体算法
    * 在Game类中调用策略
-该算法能实现基本的简单的返回功能。但该方法是由上一步方向推测出返回的方向，当多次返回时，会出现错误。
+> 该算法能实现基本的简单的返回功能。但该方法是由上一步方向推测出返回的方向，当多次返回时，会出现错误。
 
 3. 在游戏中增加拾取take命令，可以拾取当前房间的物品。
    * 在CommandWords中加入有效命令take
