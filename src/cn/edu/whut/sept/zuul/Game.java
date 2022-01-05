@@ -13,6 +13,8 @@
  */
 package cn.edu.whut.sept.zuul;
 
+import java.util.Random;
+
 public class Game
 {
     private Parser parser;
@@ -28,32 +30,70 @@ public class Game
     }
 
     /**
+     * @return 返回解析类
+     */
+    public Parser getParser()
+    {
+    	return parser;
+    }
+    
+    /**
+     * @return 返回房间类
+     */
+    public Room getCurrentRoom()
+    {
+    	return currentRoom;
+    }
+    
+    /**
+     * @return 房间类赋值
+     */
+    public void setCurrentRoom(Room room)
+    {
+    	currentRoom = room;
+    }
+    
+    /**
      * 创建所有房间对象并连接其出口用以构建迷宫.
      */
     private void createRooms()
     {
         Room outside, theater, pub, lab, office;
-
+        Goods apple, banana, car, tea, computer, earphone;
+        
         // create the rooms
         outside = new Room("outside the main entrance of the university");
         theater = new Room("in a lecture theater");
         pub = new Room("in the campus pub");
         lab = new Room("in a computing lab");
         office = new Room("in the computing admin office");
-
+        // create the goods
+        apple = new Goods("apple",0.20);
+        banana = new Goods("banana",0.21);
+        car = new Goods("car",200);
+        tea = new Goods("tea",0.15);
+        computer = new Goods("computer",8);
+        earphone = new Goods("earphone",0.05);
+        
         // initialise room exits
         outside.setExit("east", theater);
         outside.setExit("south", lab);
         outside.setExit("west", pub);
-
+        outside.setGoods(apple);
+        outside.setGoods(banana);
+        
         theater.setExit("west", outside);
+        theater.setGoods(car);
 
         pub.setExit("east", outside);
+        pub.setGoods(tea);
 
         lab.setExit("north", outside);
         lab.setExit("east", office);
+        lab.setGoods(computer);
 
         office.setExit("west", lab);
+        office.setGoods(earphone);
 
         currentRoom = outside;  // start game outside
     }
@@ -98,20 +138,43 @@ public class Game
     {
         boolean wantToQuit = false;
 
+        // 无效命令
         if(command.isUnknown()) {
             System.out.println("I don't know what you mean...");
             return false;
         }
 
-        String commandWord = command.getCommandWord();
-        if (commandWord.equals("help")) {
-            printHelp();
+        // 判断输入的第一个单词是哪个指令
+//        String commandWord = command.getCommandWord();
+//        if (commandWord.equals("help")) {
+//            printHelp();
+//        }
+//        else if (commandWord.equals("go")) {
+//            goRoom(command);
+//        }
+//        else if (commandWord.equals("quit")) {
+//            wantToQuit = quit(command);
+//        }
+        switch(command.getCommandWord()) {
+    	case "help": new Context(new StrategyHelp(command, this)).getResult(); break;
+    	case "go": new Context(new StrategyGo(command, this)).getResult(); break;
+    	case "quit": wantToQuit = (boolean)new Context(new StrategyQuit(command, this)).getResult(); break;
         }
-        else if (commandWord.equals("go")) {
-            goRoom(command);
-        }
-        else if (commandWord.equals("quit")) {
-            wantToQuit = quit(command);
+        switch(command.getCommandWord()) {
+        	case "help": new Context(new StrategyHelp(command, this)).getResult(); 
+        		break;
+        	case "go": {
+        		new Context(new StrategyGo(command, this)).getResult(); 
+        		break;
+        	}
+        	case "quit": wantToQuit = (boolean)new Context(new StrategyQuit(command, this)).getResult(); 
+        		break;
+        	case "look": new Context(new StrategyLook(command, this)).getResult(); 
+        		break;
+        	case "back": new Context(new StrategyBack(command, this)).getResult(); 
+        		break;
+        	case "take": new Context(new StrategyTake(command, this)).getResult();
+        		break;
         }
         // else command not recognised.
         return wantToQuit;
@@ -119,57 +182,57 @@ public class Game
 
     // implementations of user commands:
 
-    /**
-     * 执行help指令，在终端打印游戏帮助信息.
-     * 此处会输出游戏中用户可以输入的命令列表
-     */
-    private void printHelp()
-    {
-        System.out.println("You are lost. You are alone. You wander");
-        System.out.println("around at the university.");
-        System.out.println();
-        System.out.println("Your command words are:");
-        parser.showCommands();
-    }
+//    /**
+//     * 执行help指令，在终端打印游戏帮助信息.
+//     * 此处会输出游戏中用户可以输入的命令列表
+//     */
+//    private void printHelp()
+//    {
+//        System.out.println("You are lost. You are alone. You wander");
+//        System.out.println("around at the university.");
+//        System.out.println();
+//        System.out.println("Your command words are:");
+//        parser.showCommands();
+//    }
 
-    /**
-     * 执行go指令，向房间的指定方向出口移动，如果该出口连接了另一个房间，则会进入该房间，
-     * 否则打印输出错误提示信息.
-     */
-    private void goRoom(Command command)
-    {
-        if(!command.hasSecondWord()) {
-            // if there is no second word, we don't know where to go...
-            System.out.println("Go where?");
-            return;
-        }
+//    /**
+//     * 执行go指令，向房间的指定方向出口移动，如果该出口连接了另一个房间，则会进入该房间，
+//     * 否则打印输出错误提示信息.
+//     */
+//    private void goRoom(Command command)
+//    {
+//        if(!command.hasSecondWord()) {
+//            // if there is no second word, we don't know where to go...
+//            System.out.println("Go where?");
+//            return;
+//        }
+//
+//        String direction = command.getSecondWord();
+//
+//        // Try to leave current room.
+//        Room nextRoom = currentRoom.getExit(direction);
+//
+//        if (nextRoom == null) {
+//            System.out.println("There is no door!");
+//        }
+//        else {
+//            currentRoom = nextRoom;
+//            System.out.println(currentRoom.getLongDescription());
+//        }
+//    }
 
-        String direction = command.getSecondWord();
-
-        // Try to leave current room.
-        Room nextRoom = currentRoom.getExit(direction);
-
-        if (nextRoom == null) {
-            System.out.println("There is no door!");
-        }
-        else {
-            currentRoom = nextRoom;
-            System.out.println(currentRoom.getLongDescription());
-        }
-    }
-
-    /**
-     * 执行Quit指令，用户退出游戏。如果用户在命令中输入了其他参数，则进一步询问用户是否真的退出.
-     * @return 如果游戏需要退出则返回true，否则返回false.
-     */
-    private boolean quit(Command command)
-    {
-        if(command.hasSecondWord()) {
-            System.out.println("Quit what?");
-            return false;
-        }
-        else {
-            return true;  // signal that we want to quit
-        }
-    }
+//    /**
+//     * 执行Quit指令，用户退出游戏。如果用户在命令中输入了其他参数，则进一步询问用户是否真的退出.
+//     * @return 如果游戏需要退出则返回true，否则返回false.
+//     */
+//    private boolean quit(Command command)
+//    {
+//        if(command.hasSecondWord()) {
+//            System.out.println("Quit what?");
+//            return false;
+//        }
+//        else {
+//            return true;  // signal that we want to quit
+//        }
+//    }
 }
